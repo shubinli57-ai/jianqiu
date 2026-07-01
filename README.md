@@ -1,63 +1,59 @@
-# 单个嵌入式环形弹簧圈 CadQuery 建模脚本
+# Clean 版单个环形螺旋弹簧本体 CadQuery 模型
 
-本仓库提供 `spring_ring_model.py`，用于生成过钻头测井仪器电源模块导热结构中的 **单个嵌入式环形螺旋弹簧圈**，并导出 STEP 文件，便于后续导入 COMSOL 做局部接触/导热验证。
+本仓库提供 `spring_ring_model.py`，用于生成 **一个单独的环形螺旋弹簧本体** 并导出 STEP 文件。该 clean 版本的目标是保持弹簧外观紧凑、闭合和尺寸基本不变，同时改善 STEP 几何质量，尽量降低导入 COMSOL 时出现“面与面不一致”等几何警告的概率。
 
-## 模型定位
+## 模型范围
 
-本版本只生成 **1 个标准弹簧环**，不再一次生成 3 个弹簧环。这样导入 COMSOL 后，可以根据实际装配方案自行复制 3 个弹簧环，并沿仪器轴向移动到不同位置。
+本脚本只生成弹簧本体：
 
-坐标约定如下：
+- 不生成平台；
+- 不生成外壳；
+- 不生成环形槽；
+- 不生成辅助实体、参考圆柱或定位几何；
+- STEP 文件中只应包含 1 个弹簧 solid 实体。
 
-- 仪器轴线沿 **Z 轴**；
-- 弹簧环位于 **XY 平面**内；
-- 弹簧中心线围绕 **Z 轴**形成完整闭合圆环；
-- 在 COMSOL 中复制后，可主要沿 Z 轴移动，也可按需要旋转或阵列。
+坐标约定：
 
-## 几何背景
+- Z 轴为弹簧环中心轴线；
+- 弹簧环位于 XY 平面内；
+- 弹簧中心线围绕 Z 轴形成完整闭合圆环；
+- 导入 COMSOL 后，可复制该弹簧本体并沿 Z 轴移动到不同轴向位置。
 
-- 平台/导热套外半径 `platform_radius`：18.25 mm
-- 外壳内半径 `shell_inner_radius`：19.69 mm
-- 径向间隙 `gap`：1.44 mm
-- 环形槽深度 `groove_depth`：0.30 mm
-- 槽底半径 `groove_bottom_radius = platform_radius - groove_depth`：17.95 mm
-- 弹簧整体包络半径 `envelope_radius = (gap + groove_depth) / 2`：0.87 mm
-- 弹簧包络中心半径 `envelope_center_radius = shell_inner_radius - envelope_radius`：18.82 mm
+## 默认尺寸
 
-该模型表示装配后的等效接触状态：弹簧实体外侧最大半径等于外壳内半径 19.69 mm，即弹簧外侧刚好与外壳内壁接触；弹簧实体内侧最小半径接近槽底半径 17.95 mm，即弹簧嵌入环形槽底附近。
-
-## 建模方法
-
-脚本使用环形螺旋弹簧中心线的参数方程：
-
-- `theta` 从 0 到 `2π`，控制弹簧绕 Z 轴闭合成环；
-- `coil_count` 控制小螺旋沿环向绕行的圈数，默认 90，模型更紧凑；
-- `envelope_center_radius` 控制弹簧整体包络中心半径；
-- `helix_minor_radius = envelope_radius - wire_radius`，其中 `wire_radius = wire_diameter / 2`；
-- 用圆形截面沿闭合周期样条中心线扫掠，生成真实感更强的紧凑弹簧丝实体。
-
-注意：`envelope_radius` 是弹簧整体截面包络半径，不是弹簧丝半径；`wire_radius` 才是弹簧丝半径。
-
-## 文件说明
-
-- `spring_ring_model.py`：CadQuery 参数化建模脚本。
-- `requirements.txt`：本地运行所需 Python 依赖。
-- `outputs/spring_ring_single_groove0p3.step`：默认 STEP 输出路径，运行脚本后生成。
-
-## 参数说明
-
-脚本中的 `SpringRingParameters` 集中管理关键参数：
+当前 clean 版本保留上一版的大致外形尺寸：
 
 | 参数 | 含义 | 默认值 |
 | --- | --- | --- |
-| `platform_radius` | 平台/导热套外半径，单位 mm | `18.25` |
-| `shell_inner_radius` | 外壳内半径，单位 mm | `19.69` |
-| `groove_depth` | 环形槽深度，单位 mm | `0.30` |
-| `wire_diameter` | 弹簧丝直径，单位 mm | `0.20` |
-| `coil_count` | 环向弹簧圈数，建议 80 或 90 | `90` |
-| `points_per_coil` | 每圈离散点数，值越大曲线越平滑 | `12` |
-| `step_output_path` | STEP 文件输出路径 | `outputs/spring_ring_single_groove0p3.step` |
+| `envelope_center_radius` | 弹簧整体包络中心半径 | `18.82` mm |
+| `envelope_radius` | 弹簧整体截面包络半径 | `0.87` mm |
+| `wire_diameter` | 弹簧丝直径 | `0.15` mm |
+| `coil_count` | 环向弹簧圈数 | `70` |
+| `points_per_coil` | 每圈中心线离散点数 | `46` |
+| `step_output_path` | STEP 输出路径 | `outputs/spring_ring_single_clean.step` |
 
-`gap`、`groove_bottom_radius`、`envelope_radius`、`envelope_center_radius`、`wire_radius` 和 `helix_minor_radius` 会由上述参数自动计算。
+由默认参数得到：
+
+- 弹簧外侧最大半径约为 `18.82 + 0.87 = 19.69 mm`；
+- 弹簧内侧最小半径约为 `18.82 - 0.87 = 17.95 mm`；
+- 弹簧丝半径 `wire_radius = wire_diameter / 2 = 0.075 mm`；
+- 螺旋中心线小半径 `helix_minor_radius = envelope_radius - wire_radius = 0.795 mm`；
+- 默认中心线采样点数为 `70 * 46 + 1 = 3221`，用于提高闭合和扫掠稳定性。
+
+注意：`envelope_radius` 是弹簧整体截面包络半径，不是弹簧丝半径；`wire_radius` 才是弹簧丝半径。
+
+## 几何质量优化
+
+为改善 COMSOL 导入稳定性，脚本做了以下处理：
+
+1. 使用首尾位置连续、切向连续的周期参数方程生成闭合中心线；
+2. 使用 `periodic=True` 创建闭合周期样条，避免用直线段闭合产生折角；
+3. 默认中心线采样点数超过 3000；
+4. 使用较细弹簧丝直径 `0.15 mm` 和较低但仍紧凑的 `70` 圈，降低局部自相交风险；
+5. 使用圆截面沿闭合路径扫掠生成 solid 实体，而不是 wire、shell 或 surface；
+6. 扫掠后执行 `.clean()`；
+7. 导出 STEP 前检查 solid 数量和 CadQuery `isValid()` 结果；
+8. 如果实体无效，脚本会打印提示并停止导出，避免静默输出错误 STEP。
 
 ## 安装依赖
 
@@ -70,7 +66,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-`requirements.txt` 当前内容为：
+`requirements.txt` 当前保留 CadQuery 2.x 版本范围：
 
 ```text
 cadquery>=2.4,<3
@@ -84,45 +80,52 @@ cadquery>=2.4,<3
 python spring_ring_model.py
 ```
 
-运行成功后，终端会输出 STEP 文件的绝对路径。最终应生成的 STEP 文件名和路径为：
+运行成功后，终端会打印：
+
+- CadQuery 形状类型；
+- solid 数量；
+- `isValid()` 几何有效性检查结果；
+- STEP 文件绝对路径；
+- 中心线采样点数；
+- 弹簧外侧最大半径和内侧最小半径。
+
+最终输出文件为：
 
 ```text
-outputs/spring_ring_single_groove0p3.step
+outputs/spring_ring_single_clean.step
 ```
 
-## 如何修改关键参数
+## 修改弹簧尺寸和密度
 
 打开 `spring_ring_model.py`，修改 `main()` 函数中的 `SpringRingParameters(...)`：
 
 ```python
 params = SpringRingParameters(
-    platform_radius=18.25,
-    shell_inner_radius=19.69,
-    groove_depth=0.30,
-    wire_diameter=0.20,
-    coil_count=90,
-    points_per_coil=12,
-    step_output_path="outputs/spring_ring_single_groove0p3.step",
+    envelope_center_radius=18.82,
+    envelope_radius=0.87,
+    wire_diameter=0.15,
+    coil_count=70,
+    points_per_coil=46,
+    step_output_path="outputs/spring_ring_single_clean.step",
 )
 ```
 
 常见修改方式：
 
-- 修改槽深：调整 `groove_depth`。例如 0.40 mm 槽深可设为 `groove_depth=0.40`。
-- 修改弹簧丝径：调整 `wire_diameter`。例如更细弹簧丝可设为 `wire_diameter=0.18`。
-- 修改环向圈数：调整 `coil_count`。建议优先使用 80 或 90；数值越大，弹簧越紧凑，几何和网格也越复杂。
-- 修改输出文件名：调整 `step_output_path`。例如 `outputs/spring_ring_single_groove0p4.step`。
+- 修改弹簧丝径：调整 `wire_diameter`，建议先尝试 `0.15` 或 `0.18`。
+- 修改弹簧圈密度：调整 `coil_count`，建议在 `60` 到 `80` 之间；如果 COMSOL 导入仍有几何警告，可先降低到 `60` 或 `65`。
+- 修改整体外形尺寸：调整 `envelope_radius` 和 `envelope_center_radius`。
+- 修改输出文件名：调整 `step_output_path`，例如 `outputs/spring_ring_single_clean_coil60.step`。
 
 ## 在 COMSOL 中使用
 
-1. 本地运行脚本，生成 `outputs/spring_ring_single_groove0p3.step`。
+1. 本地运行脚本，生成 `outputs/spring_ring_single_clean.step`。
 2. 打开 COMSOL Multiphysics。
 3. 在模型树中进入 **Geometry**。
 4. 选择 **Import**，文件类型选择 STEP。
-5. 导入 `outputs/spring_ring_single_groove0p3.step`。
+5. 导入 `outputs/spring_ring_single_clean.step`。
 6. 点击 **Import** 或 **Build Selected** 生成几何。
-7. 如需 3 个弹簧环，可在 COMSOL 中复制该单个弹簧环，并沿 Z 轴移动到不同轴向位置。
-8. 与外壳内壁设置热接触或等效接触导热边界时，可将弹簧外侧视为装配后刚好接触外壳内壁的状态。
+7. 如需多个弹簧环，可在 COMSOL 中复制该单个弹簧本体，并沿 Z 轴移动到不同轴向位置。
 
 ## 当前云端环境说明
 
